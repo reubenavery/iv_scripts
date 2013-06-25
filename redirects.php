@@ -85,9 +85,9 @@ while ($row = db_fetch_array($query)) {
   $response_code = ($response_code) ? '='. $response_code : '';
 
   if ($ignore_hosts) {
-    print 'RewriteRule ^'. rewrite_quote($old_path, '/') .'$ /'. $new_path .' [R'. $response_code .',L]'. "\n";
+    print 'RewriteRule ^/'. rewrite_quote($old_path, '/') .'$ /'. $new_path .' [R'. $response_code .',L]'. "\n";
   }
   else {
-    print 'RewriteRule ^'. rewrite_quote($old_path, '/') .'$ http://'. $new_host .'/'. $new_path .' [R'. $response_code .',L]'. "\n";
+    print 'RewriteRule ^/'. rewrite_quote($old_path, '/') .'$ http://'. $new_host .'/'. $new_path .' [R'. $response_code .',L]'. "\n";
   }
 }
