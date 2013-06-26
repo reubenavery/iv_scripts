@@ -127,9 +127,6 @@ function export_feature($stub, $dependencies, $module_name = NULL, $directory = 
 
 $feature = feature_load('template_simplification_feature', TRUE);
 
-$feature->info['features']['reference_pane'] = array();
-foreach ($all_panes as $id => $pane) {
-  $feature->info['features']['reference_pane'][] = $id;
-}
+$feature->info['features']['reference_pane'] = array_keys($all_panes);
 
 export_feature($feature->info['features'], $feature->info['dependencies'], $feature->name, dirname($feature->filename));
