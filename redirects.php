@@ -3,7 +3,8 @@
 
 // Hardcoded arguments for now:
 
-$filename = '7-3-13 Batch.xlsx';
+
+$filename = $argv[1];
 $ignore_hosts = true;
 $skip_first = true;
 
@@ -20,7 +21,7 @@ drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
 function rewrite_quote($str) {
   $str = str_replace(' ', '\ ', preg_quote($str, '/'));
-  $str = preg_replace('/(?:%20|\+|\ )/', '(?:%20|\+|\ )', $str);
+//  $str = preg_replace('/(?:%20|\+|\ )/', '(?:%20|\+|\ )', $str);
   return $str;
 }
 
@@ -97,31 +98,26 @@ print "RewriteEngine On\n";
 while ($row = db_fetch_array($query)) {
   extract($row);
 
-  if ($old_host !== $last_host && !$ignore_hosts) {
-//    print "\n";
-    print 'RewriteCond %{HTTP_HOST} ^'. rewrite_quote($old_host) ."$ [NC]\n";
-    $last_host = $old_host;
-    $last_query = FALSE;
-  }
-
-  if ($old_query !== $last_query) {
-    if ($old_query) {
-//      print "\n";
-      if (!$ignore_hosts) { print 'RewriteCond %{HTTP_HOST} ^'. rewrite_quote($old_host) ."$ [NC]\n"; }
-      print 'RewriteCond %{QUERY_STRING} ^'. rewrite_quote($old_query, '/') ."$\n";
-    }
-    $last_query = $old_query;
-  }
-
-//  $old_path = urlencode(urldecode($old_path));
-//  $old_path = ($old_path == '') ? '(.*)' : '^'. rewrite_quote($old_path) .'(.*)';
-  $new_path = str_replace(' ', '+', $new_path);
+  $new_path = str_replace(' ', '%20', $new_path);
   $response_code = ($response_code) ? '='. $response_code : '';
 
+  if (empty($new_query)) {
+    // Preventing query string passthrough.
+    $new_path .= '?';
+  }
+
+  if (!$ignore_hosts) {
+    print 'RewriteCond %{HTTP_HOST} ^'. rewrite_quote($old_host) ."$ [NC]\n";
+  }
+
+  if ($old_query) {
+    print 'RewriteCond %{QUERY_STRING} ^'. rewrite_quote($old_query) ."$\n";
+  }
+
   if ($ignore_hosts) {
-    print 'RewriteRule ^\/??'. rewrite_quote($old_path, '/') .'$ /'. $new_path .' [R'. $response_code .',L]'. "\n";
+    print 'RewriteRule ^\/??'. rewrite_quote(rawurldecode($old_path)) .'$ /'. $new_path .' [R'. $response_code .',L,NE]'. "\n";
   }
   else {
-    print 'RewriteRule ^\/??'. rewrite_quote($old_path, '/') .'$ http://'. $new_host .'/'. $new_path .' [R'. $response_code .',L]'. "\n";
+    print 'RewriteRule ^\/??'. rewrite_quote(rawurldecode($old_path)) .'$ http://'. $new_host .'/'. $new_path .' [R'. $response_code .',L,NE]'. "\n";
   }
 }
